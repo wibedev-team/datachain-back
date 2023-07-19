@@ -1,0 +1,12 @@
+postgresql:
+  username: chechyotka
+  password: 5432
+  host: localhost
+  port: 5432
+  database: datachain
+minio:
+  host: localhost
+  port: 9000
+  accessKeyID: bC2fbyLxLUsUHMtqUvDx
+  secretAccessKey: rQ0EorX8bTLLo75xLn0lIeu9echhwQXEtwuOxhjA
+  bucketName: datachain
