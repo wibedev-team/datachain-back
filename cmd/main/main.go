@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/wibedev-team/datachain-back/internal/auth"
 	"log"
+	"net/http"
 	"os"
+
+	"github.com/gin-gonic/gin"
 
 	"github.com/wibedev-team/datachain-back/internal/config"
 	"github.com/wibedev-team/datachain-back/pkg/db/postgresql"
@@ -41,4 +45,16 @@ func main() {
 
 	minioClient := minio.New(ctx, minioCfg)
 	_ = minioClient
+
+	engine := gin.New()
+	engine.Handle(http.MethodGet, "/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, "health")
+	})
+
+	authGroup := engine.Group("/auth")
+	authStorage := auth.NewStorage(pgClient)
+	authHandler := auth.NewHandler(authGroup, authStorage)
+	authHandler.Register()
+
+	log.Fatal(engine.Run(":8000"))
 }

@@ -7,10 +7,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateAccessToken(id string) (token string, err error) {
+func GenerateAccessToken(login, role string) (token string, err error) {
 	t := jwt.New(jwt.SigningMethodHS256)
 	mapClaims := t.Claims.(jwt.MapClaims)
-	mapClaims["id"] = id
+	mapClaims["login"] = login
+	mapClaims["role"] = role
 	mapClaims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 	token, err = t.SignedString([]byte("secret"))
 	if err != nil {
@@ -34,11 +35,11 @@ func ParseAccessToken(token string) (jwt.MapClaims, error) {
 	return claims.Claims.(jwt.MapClaims), err
 }
 
-func GenerateRefreshToken(id string) (token string, err error) {
+func GenerateRefreshToken(login string) (token string, err error) {
 	t := jwt.New(jwt.SigningMethodHS256)
 	mapClaims := t.Claims.(jwt.MapClaims)
-	mapClaims["id"] = id
-	mapClaims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	mapClaims["login"] = login
+	mapClaims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	token, err = t.SignedString([]byte("refresh_token"))
 	if err != nil {
 		return "", err
