@@ -41,16 +41,19 @@ func (h *handler) login(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&dto)
 	if err != nil {
+		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "decode error",
 		})
 		return
 	}
 
+	log.Println(dto.Login, dto.Password)
+
 	user, err := h.storage.FindUserByLogin(c, dto.Login)
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusNotFound, gin.H{
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "wrong login",
 		})
 		return
@@ -67,7 +70,7 @@ func (h *handler) login(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal error",
+			"error": "internal server error",
 		})
 		return
 	}
@@ -90,7 +93,7 @@ func (h *handler) login(c *gin.Context) {
 }
 
 func (h *handler) logout(c *gin.Context) {
-	c.SetCookie("access_token", "", -1, "/", "127.0.01", false, false)
+	c.SetCookie("refresh_token", "", -1, "/", "localhost", false, false)
 	c.JSON(http.StatusOK, gin.H{
 		"message": "log out",
 	})

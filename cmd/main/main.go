@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"github.com/wibedev-team/datachain-back/internal/auth"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"os"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/wibedev-team/datachain-back/internal/config"
+	"github.com/wibedev-team/datachain-back/internal/domain"
 	"github.com/wibedev-team/datachain-back/pkg/db/postgresql"
 	"github.com/wibedev-team/datachain-back/pkg/minio"
 )
@@ -44,17 +43,29 @@ func main() {
 	)
 
 	minioClient := minio.New(ctx, minioCfg)
-	_ = minioClient
 
-	engine := gin.New()
-	engine.Handle(http.MethodGet, "/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, "health")
-	})
+	engine := gin.Default()
+	engine.Use(cors.Default())
 
-	authGroup := engine.Group("/auth")
-	authStorage := auth.NewStorage(pgClient)
-	authHandler := auth.NewHandler(authGroup, authStorage)
-	authHandler.Register()
+	domain.NewAuth(engine, pgClient)
+	domain.NewAboutUs(engine, pgClient, minioClient)
 
 	log.Fatal(engine.Run(":8000"))
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		c.Header("Access-Control-Allow-Origin", "*")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Header("Access-Control-Allow-Methods", "POST,HEAD,PATCH, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
