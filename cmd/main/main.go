@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 
 	"github.com/wibedev-team/datachain-back/internal/config"
 	"github.com/wibedev-team/datachain-back/internal/domain"
@@ -50,6 +51,8 @@ func main() {
 	domain.NewAuth(engine, pgClient)
 	domain.NewAboutUs(engine, pgClient, minioClient)
 	domain.NewStack(engine, pgClient, minioClient)
+	//domain.NewStack(engine, pgClient, minioClient)
+	domain.NewTeam(engine, pgClient, minioClient)
 	domain.NewFooter(engine, pgClient)
 
 	log.Fatal(engine.Run(":8000"))

@@ -5,12 +5,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 
-	"github.com/wibedev-team/datachain-back/internal/domain/aboutus"
+	"github.com/wibedev-team/datachain-back/internal/domain/team"
 )
 
-func NewAboutUs(engine *gin.Engine, pgClient *pgxpool.Pool, minio *minio.Client) {
-	aboutGroup := engine.Group("/about")
-	aboutStorage := aboutus.NewStorage(pgClient)
-	aboutHandler := aboutus.NewHandler(aboutGroup, aboutStorage, minio)
-	aboutHandler.Register()
+func NewTeam(engine *gin.Engine, pgClient *pgxpool.Pool, minio *minio.Client) {
+	teamGroup := engine.Group("/team")
+	teamStorage := team.NewStorage(pgClient)
+	teamHandler := team.NewHandler(teamGroup, teamStorage, minio)
+	teamHandler.Register()
 }

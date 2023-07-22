@@ -1,9 +1,8 @@
-package aboutus
+package team
 
 import (
 	"context"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -22,8 +21,9 @@ type handler struct {
 }
 
 type Storage interface {
-	SaveSection(ctx context.Context, dto models.About) error
-	GetSection(ctx context.Context) (models.About, error)
+	SaveTeammate(ctx context.Context, dto models.Team) error
+	GetAllTeammates(ctx context.Context) ([]models.Team, error)
+	RemoveTeammate(ctx context.Context, id string) error
 }
 
 func NewHandler(r *gin.RouterGroup, s Storage, m *minio.Client) *handler {
@@ -35,26 +35,30 @@ func NewHandler(r *gin.RouterGroup, s Storage, m *minio.Client) *handler {
 }
 
 func (h *handler) Register() {
-	h.router.Handle(http.MethodPost, "/create", h.submitHandler)
-	h.router.Handle(http.MethodGet, "/get", h.getAboutSection)
-	//h.router.Handle(http.MethodGet, "/update", h.getAboutSection)
+	h.router.Handle(http.MethodPost, "/create", h.createTeammate)
+	h.router.Handle(http.MethodGet, "/get", h.getTeammates)
+	h.router.Handle(http.MethodDelete, "/:id", h.removeTeammate)
 }
 
-func (h *handler) submitHandler(c *gin.Context) {
+func (h *handler) createTeammate(c *gin.Context) {
 	img, _ := c.FormFile("image")
 	img.Filename = uuid.New().String() + ".png"
 
 	var dto struct {
-		Title       string `form:"title"`
-		Description string `form:"description"`
+		Name     string `form:"name"`
+		Position string `form:"position"`
+		Link     string `form:"link"`
 	}
 	err := c.ShouldBind(&dto)
 	if err != nil {
-
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "decode error",
+		})
 	}
-	fmt.Println(dto.Title, dto.Description, img.Filename)
+	fmt.Println(dto.Name, dto.Position, dto.Link)
 
-	var aboutDto models.About
+	var teamDto models.Team
 
 	err = c.SaveUploadedFile(img, "static/"+img.Filename)
 	if err != nil {
@@ -80,55 +84,43 @@ func (h *handler) submitHandler(c *gin.Context) {
 		log.Println(err)
 	}
 
-	aboutDto.Title = dto.Title
-	aboutDto.Description = dto.Description
-	aboutDto.Img = img.Filename
+	teamDto.Name = dto.Name
+	teamDto.Position = dto.Position
+	teamDto.Link = dto.Link
+	teamDto.Img = img.Filename
 
-	err = h.storage.SaveSection(c, aboutDto)
+	err = h.storage.SaveTeammate(c, teamDto)
 	if err != nil {
 		return
 	}
 	log.Println(err)
 
 	c.JSON(http.StatusOK, gin.H{
-		"title":       aboutDto.Title,
-		"description": aboutDto.Description,
-		"img":         img.Filename,
+		"teammate": teamDto,
 	})
 }
 
-func (h *handler) getAboutSectionForEdit(c *gin.Context) {
-	about, err := h.storage.GetSection(c)
+func (h *handler) getTeammates(c *gin.Context) {
+	teammates, err := h.storage.GetAllTeammates(c)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"title":       about.Title,
-		"description": template.HTML(about.Description),
-		"img":         about.Img,
+		"teammates": teammates,
 	})
 }
 
-func (h *handler) getAboutSection(c *gin.Context) {
-	about, err := h.storage.GetSection(c)
+func (h *handler) removeTeammate(c *gin.Context) {
+	id := c.Param("id")
+
+	err := h.storage.RemoveTeammate(c, id)
 	if err != nil {
 		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "server error",
+		})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"title":       about.Title,
-		"description": about.Description,
-		"img":         about.Img,
-	})
 }
-
-//func (h *handler) createAboutUsSection(c *gin.Context) {
-//	title := c.Request.FormValue("title")
-//	description := c.Request.FormValue("description")
-//	img, _ := c.FormFile("image")
-//	fmt.Println(title, description, img.Filename)
-//	c.HTML(http.StatusOK, "aboutedit.html", gin.H{})
-//}

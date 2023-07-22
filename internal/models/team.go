@@ -1,9 +1,8 @@
 package models
 
 type Team struct {
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-	Position  string `json:"position"`
-	Biography string `json:"biography"`
-	Img       string `json:"img"`
+	Name     string `json:"name"`
+	Position string `json:"position"`
+	Link     string `json:"link"`
+	Img      string `json:"img"`
 }

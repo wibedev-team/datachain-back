@@ -1,10 +1,12 @@
-package aboutus
+package team
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/wibedev-team/datachain-back/internal/models"
 	"log"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/wibedev-team/datachain-back/internal/models"
 )
 
 type storage struct {
@@ -17,13 +19,13 @@ func NewStorage(r *pgxpool.Pool) *storage {
 	}
 }
 
-func (s *storage) SaveSection(ctx context.Context, dto models.About) error {
+func (s *storage) SaveTeammate(ctx context.Context, dto models.Team) error {
 	query := `
-		INSERT INTO about (title, description, img)
-		VALUES ($1, $2, $3)
+		INSERT INTO team (name, position, link, img)
+		VALUES ($1, $2, $3, $4)
 	`
 
-	exec, err := s.repo.Exec(ctx, query, dto.Title, dto.Description, dto.Img)
+	exec, err := s.repo.Exec(ctx, query, dto.Name, dto.Position, dto.Link, dto.Img)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -33,20 +35,46 @@ func (s *storage) SaveSection(ctx context.Context, dto models.About) error {
 	return nil
 }
 
-func (s *storage) GetSection(ctx context.Context) (models.About, error) {
+func (s *storage) GetAllTeammates(ctx context.Context) ([]models.Team, error) {
 	query := `
-		SELECT title, description, img 
-		FROM about
-		ORDER BY created_at DESC   
-		LIMIT 1
+		SELECT name, position, link, img 
+		FROM team
 	`
 
-	var dto models.About
-	err := s.repo.QueryRow(ctx, query).Scan(&dto.Title, &dto.Description, &dto.Img)
+	rows, err := s.repo.Query(ctx, query)
 	if err != nil {
 		log.Println(err)
-		return models.About{}, err
+		return nil, err
+	}
+	defer rows.Close()
+
+	var teammates []models.Team
+	for rows.Next() {
+		var t models.Team
+		err := rows.Scan(&t.Name, &t.Position, &t.Link, &t.Img)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+
+		teammates = append(teammates, t)
 	}
 
-	return dto, nil
+	return teammates, nil
+}
+
+func (s *storage) RemoveTeammate(ctx context.Context, id string) error {
+	query := `
+		DELETE FROM team
+		WHERE img = $1
+	`
+
+	exec, err := s.repo.Exec(ctx, query, id)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Println(exec.RowsAffected())
+
+	return nil
 }
