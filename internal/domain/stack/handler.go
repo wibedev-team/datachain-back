@@ -22,6 +22,7 @@ type handler struct {
 type Storage interface {
 	CreateStackImage(ctx context.Context, img string) error
 	GetAllStackImages(ctx context.Context) ([]models.Stack, error)
+	RemoveStack(ctx context.Context, id string) error
 }
 
 func NewHandler(r *gin.RouterGroup, s Storage, m *minio.Client) *handler {
@@ -35,6 +36,8 @@ func NewHandler(r *gin.RouterGroup, s Storage, m *minio.Client) *handler {
 func (h *handler) Register() {
 	h.router.POST("/create", h.createImage)
 	h.router.GET("/all", h.getAllImages)
+	h.router.Handle(http.MethodDelete, "/:id", h.removeStack)
+
 }
 
 func (h *handler) createImage(c *gin.Context) {
@@ -92,4 +95,17 @@ func (h *handler) getAllImages(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"stacks": images,
 	})
+}
+
+func (h *handler) removeStack(c *gin.Context) {
+	id := c.Param("id")
+
+	err := h.storage.RemoveStack(c, id)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "server error",
+		})
+		return
+	}
 }

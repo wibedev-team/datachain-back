@@ -61,3 +61,19 @@ func (s *storage) GetAllStackImages(ctx context.Context) ([]models.Stack, error)
 
 	return stacks, nil
 }
+
+func (s *storage) RemoveStack(ctx context.Context, id string) error {
+	query := `
+		DELETE FROM stacks
+		WHERE img = $1
+	`
+
+	exec, err := s.repo.Exec(ctx, query, id)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	log.Println(exec.RowsAffected())
+
+	return nil
+}
