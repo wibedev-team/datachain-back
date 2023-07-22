@@ -49,6 +49,7 @@ func main() {
 
 	domain.NewAuth(engine, pgClient)
 	domain.NewAboutUs(engine, pgClient, minioClient)
+	domain.NewStack(engine, pgClient, minioClient)
 
 	log.Fatal(engine.Run(":8000"))
 }

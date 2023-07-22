@@ -89,7 +89,7 @@ func (h *handler) getAllImages(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusInternalServerError, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"stacks": images,
 	})
 }
