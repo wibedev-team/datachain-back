@@ -9,7 +9,7 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
-type minioCfg struct {
+type MinioCfg struct {
 	Host            string
 	Port            string
 	AccessKeyID     string
@@ -17,8 +17,8 @@ type minioCfg struct {
 	BucketName      string
 }
 
-func NewConfig(host, port, accessKeyID, secretAccessKey, bucketName string) *minioCfg {
-	return &minioCfg{
+func NewConfig(host, port, accessKeyID, secretAccessKey, bucketName string) *MinioCfg {
+	return &MinioCfg{
 		Host:            host,
 		Port:            port,
 		AccessKeyID:     accessKeyID,
@@ -27,7 +27,7 @@ func NewConfig(host, port, accessKeyID, secretAccessKey, bucketName string) *min
 	}
 }
 
-func New(ctx context.Context, cfg *minioCfg) *minio.Client {
+func New(ctx context.Context, cfg *MinioCfg) *minio.Client {
 	endpoint := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 	accessKeyID := cfg.AccessKeyID
 	secretAccessKey := cfg.SecretAccessKey

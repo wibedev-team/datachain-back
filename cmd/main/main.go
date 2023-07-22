@@ -19,30 +19,52 @@ func main() {
 
 	args := os.Args
 	if len(args) != 2 {
-		log.Fatalf("provide path to congig file")
+		if os.Getenv("POSTGRES_DB") == "" {
+			log.Fatalf("provide path to congig file")
+		}
 	}
 
-	cfg := config.New(args[1])
+	var cfg *config.Config
+	var pgCfg *postgresql.PgConfig
+	var minioCfg *minio.MinioCfg
 
-	pgCfg := postgresql.NewConfig(
-		cfg.Postgresql.Username,
-		cfg.Postgresql.Password,
-		cfg.Postgresql.Host,
-		cfg.Postgresql.Port,
-		cfg.Postgresql.Database,
-	)
+	if os.Getenv("POSTGRES_HOST") == "" {
+		cfg = config.New(args[1])
+
+		pgCfg = postgresql.NewConfig(
+			cfg.Postgresql.Username,
+			cfg.Postgresql.Password,
+			cfg.Postgresql.Host,
+			cfg.Postgresql.Port,
+			cfg.Postgresql.Database,
+		)
+
+		minioCfg = minio.NewConfig(
+			cfg.Minio.Host,
+			cfg.Minio.Port,
+			cfg.Minio.AccessKeyID,
+			cfg.Minio.SecretAccessKey,
+			cfg.Minio.BucketName,
+		)
+	} else {
+		pgCfg = postgresql.NewConfig(
+			os.Getenv("POSTGRES_USER"),
+			os.Getenv("POSTGRES_PASSWORD"),
+			os.Getenv("POSTGRES_HOST"),
+			os.Getenv("POSTGRES_PORT"),
+			os.Getenv("POSTGRES_DB"),
+		)
+
+		minioCfg = minio.NewConfig(
+			os.Getenv("MINIO_HOST"),
+			os.Getenv("MINIO_PORT"),
+			os.Getenv("MINIO_ACCESS"),
+			os.Getenv("MINIO_SECRET"),
+			os.Getenv("MINIO_BUCKET"),
+		)
+	}
 
 	pgClient := postgresql.New(ctx, pgCfg)
-	_ = pgClient
-
-	minioCfg := minio.NewConfig(
-		cfg.Minio.Host,
-		cfg.Minio.Port,
-		cfg.Minio.AccessKeyID,
-		cfg.Minio.SecretAccessKey,
-		cfg.Minio.BucketName,
-	)
-
 	minioClient := minio.New(ctx, minioCfg)
 
 	engine := gin.Default()

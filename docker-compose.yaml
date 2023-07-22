@@ -1,0 +1,62 @@
+version: "3.7"
+services:
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: always
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin
+    ports:
+      - "9000:9000"
+    networks:
+      - microservices-network
+    volumes:
+      - minio_data:/data
+      - minio_config:/root/.minio
+
+  postgres:
+    image: datachain-postgres
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: datachain
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 5432
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  server:
+    image: datachain-golang
+    container_name: datachain-golang
+    restart: always
+    environment:
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "datachain"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "5432"
+      MINIO_HOST: "minio"
+      MINIO_PORT: "9000"
+      MINIO_ACCESS: "bC2fbyLxLUsUHMtqUvDx"
+      MINIO_SECRET: "54rQ0EorX8bTLLo75xLn0lIeu9echhwQXEtwuOxhjA32"
+      MINIO_BUCKET: "datachain"
+    depends_on:
+      - postgres
+      - minio
+    ports:
+      - "8000:8000"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  minio_data:
+  minio_config:
+  postgres_data:

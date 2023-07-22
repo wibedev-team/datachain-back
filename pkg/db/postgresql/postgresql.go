@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type pgConfig struct {
+type PgConfig struct {
 	Username string
 	Password string
 	Host     string
@@ -16,8 +16,8 @@ type pgConfig struct {
 	Database string
 }
 
-func NewConfig(username, password, host, port, database string) *pgConfig {
-	return &pgConfig{
+func NewConfig(username, password, host, port, database string) *PgConfig {
+	return &PgConfig{
 		Username: username,
 		Password: password,
 		Host:     host,
@@ -26,7 +26,7 @@ func NewConfig(username, password, host, port, database string) *pgConfig {
 	}
 }
 
-func New(ctx context.Context, cfg *pgConfig) *pgxpool.Pool {
+func New(ctx context.Context, cfg *PgConfig) *pgxpool.Pool {
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
 	log.Println(connString)
 
