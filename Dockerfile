@@ -3,12 +3,7 @@ ENV POSTGRES_HOST="postgres" \
   POSTGRES_PORT="5432" \
   POSTGRES_DB="datachain" \
   POSTGRES_USER="postgres" \
-  POSTGRES_PASSWORD="5432" \
-  MINIO_HOST="postgres" \
-  MINIO_PORT="9000" \
-  MINIO_ACCESS="bC2fbyLxLUsUHMtqUvDx" \
-  MINIO_SECRET="54rQ0EorX8bTLLo75xLn0lIeu9echhwQXEtwuOxhjA32" \
-  MINIO_BUCKET="datachain"
+  POSTGRES_PASSWORD="5432"
 
 WORKDIR /app
 COPY go.mod go.sum ./
