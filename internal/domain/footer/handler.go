@@ -2,10 +2,12 @@ package footer
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/wibedev-team/datachain-back/internal/models"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/wibedev-team/datachain-back/internal/models"
 )
 
 type handler struct {

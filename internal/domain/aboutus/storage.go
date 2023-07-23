@@ -2,9 +2,11 @@ package aboutus
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/wibedev-team/datachain-back/internal/models"
 	"log"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/wibedev-team/datachain-back/internal/models"
 )
 
 type storage struct {

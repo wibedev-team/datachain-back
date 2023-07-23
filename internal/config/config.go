@@ -15,13 +15,13 @@ type Config struct {
 		Port     string `yaml:"port"`
 		Database string `yaml:"database"`
 	} `yaml:"postgresql"`
-	Minio struct {
-		Host            string `yaml:"host"`
-		Port            string `yaml:"port"`
-		AccessKeyID     string `yaml:"accessKeyID"`
-		SecretAccessKey string `yaml:"secretAccessKey"`
-		BucketName      string `yaml:"bucketName"`
-	} `yaml:"minio"`
+	//Minio struct {
+	//	Host            string `yaml:"host"`
+	//	Port            string `yaml:"port"`
+	//	AccessKeyID     string `yaml:"accessKeyID"`
+	//	SecretAccessKey string `yaml:"secretAccessKey"`
+	//	BucketName      string `yaml:"bucketName"`
+	//} `yaml:"minio"`
 }
 
 func New(configPath string) *Config {

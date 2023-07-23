@@ -11,7 +11,6 @@ import (
 	"github.com/wibedev-team/datachain-back/internal/config"
 	"github.com/wibedev-team/datachain-back/internal/domain"
 	"github.com/wibedev-team/datachain-back/pkg/db/postgresql"
-	"github.com/wibedev-team/datachain-back/pkg/minio"
 )
 
 func main() {
@@ -26,7 +25,7 @@ func main() {
 
 	var cfg *config.Config
 	var pgCfg *postgresql.PgConfig
-	var minioCfg *minio.MinioCfg
+	//var minioCfg *minio.MinioCfg
 
 	if os.Getenv("POSTGRES_HOST") == "" {
 		cfg = config.New(args[1])
@@ -38,14 +37,6 @@ func main() {
 			cfg.Postgresql.Port,
 			cfg.Postgresql.Database,
 		)
-
-		minioCfg = minio.NewConfig(
-			cfg.Minio.Host,
-			cfg.Minio.Port,
-			cfg.Minio.AccessKeyID,
-			cfg.Minio.SecretAccessKey,
-			cfg.Minio.BucketName,
-		)
 	} else {
 		pgCfg = postgresql.NewConfig(
 			os.Getenv("POSTGRES_USER"),
@@ -54,27 +45,18 @@ func main() {
 			os.Getenv("POSTGRES_PORT"),
 			os.Getenv("POSTGRES_DB"),
 		)
-
-		minioCfg = minio.NewConfig(
-			os.Getenv("MINIO_HOST"),
-			os.Getenv("MINIO_PORT"),
-			os.Getenv("MINIO_ACCESS"),
-			os.Getenv("MINIO_SECRET"),
-			os.Getenv("MINIO_BUCKET"),
-		)
 	}
 
 	pgClient := postgresql.New(ctx, pgCfg)
-	minioClient := minio.New(ctx, minioCfg)
 
 	engine := gin.Default()
 	engine.Use(cors.Default())
+	engine.Static("/static", "./static")
 
 	domain.NewAuth(engine, pgClient)
-	domain.NewAboutUs(engine, pgClient, minioClient)
-	domain.NewStack(engine, pgClient, minioClient)
-	//domain.NewStack(engine, pgClient, minioClient)
-	domain.NewTeam(engine, pgClient, minioClient)
+	domain.NewAboutUs(engine, pgClient)
+	domain.NewStack(engine, pgClient)
+	domain.NewTeam(engine, pgClient)
 	domain.NewFooter(engine, pgClient)
 
 	log.Fatal(engine.Run(":8000"))

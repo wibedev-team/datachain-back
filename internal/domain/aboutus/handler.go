@@ -2,15 +2,12 @@ package aboutus
 
 import (
 	"context"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
 )
@@ -18,7 +15,6 @@ import (
 type handler struct {
 	router  *gin.RouterGroup
 	storage Storage
-	minio   *minio.Client
 }
 
 type Storage interface {
@@ -26,18 +22,16 @@ type Storage interface {
 	GetSection(ctx context.Context) (models.About, error)
 }
 
-func NewHandler(r *gin.RouterGroup, s Storage, m *minio.Client) *handler {
+func NewHandler(r *gin.RouterGroup, s Storage) *handler {
 	return &handler{
 		router:  r,
 		storage: s,
-		minio:   m,
 	}
 }
 
 func (h *handler) Register() {
 	h.router.Handle(http.MethodPost, "/create", h.submitHandler)
 	h.router.Handle(http.MethodGet, "/get", h.getAboutSection)
-	//h.router.Handle(http.MethodGet, "/update", h.getAboutSection)
 }
 
 func (h *handler) submitHandler(c *gin.Context) {
@@ -52,7 +46,8 @@ func (h *handler) submitHandler(c *gin.Context) {
 	if err != nil {
 
 	}
-	fmt.Println(dto.Title, dto.Description, img.Filename)
+
+	log.Println(dto.Title, dto.Description, img.Filename)
 
 	var aboutDto models.About
 
@@ -62,22 +57,6 @@ func (h *handler) submitHandler(c *gin.Context) {
 			"error": err.Error(),
 		})
 		return
-	}
-
-	info, err := h.minio.FPutObject(c, "datachain", img.Filename, "static/"+img.Filename, minio.PutObjectOptions{ContentType: "image/png"})
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	log.Printf("Successfully uploaded %s of size %d\n", img.Filename, info.Size)
-
-	err = os.Remove("static/" + img.Filename)
-	if err != nil {
-		log.Println(err)
 	}
 
 	aboutDto.Title = dto.Title
@@ -124,11 +103,3 @@ func (h *handler) getAboutSection(c *gin.Context) {
 		"img":         about.Img,
 	})
 }
-
-//func (h *handler) createAboutUsSection(c *gin.Context) {
-//	title := c.Request.FormValue("title")
-//	description := c.Request.FormValue("description")
-//	img, _ := c.FormFile("image")
-//	fmt.Println(title, description, img.Filename)
-//	c.HTML(http.StatusOK, "aboutedit.html", gin.H{})
-//}

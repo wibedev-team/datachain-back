@@ -2,13 +2,12 @@ package stack
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
 )
@@ -16,7 +15,6 @@ import (
 type handler struct {
 	router  *gin.RouterGroup
 	storage Storage
-	minio   *minio.Client
 }
 
 type Storage interface {
@@ -25,18 +23,17 @@ type Storage interface {
 	RemoveStack(ctx context.Context, id string) error
 }
 
-func NewHandler(r *gin.RouterGroup, s Storage, m *minio.Client) *handler {
+func NewHandler(r *gin.RouterGroup, s Storage) *handler {
 	return &handler{
 		router:  r,
 		storage: s,
-		minio:   m,
 	}
 }
 
 func (h *handler) Register() {
 	h.router.POST("/create", h.createImage)
 	h.router.GET("/all", h.getAllImages)
-	h.router.Handle(http.MethodDelete, "/:id", h.removeStack)
+	h.router.DELETE("/:id", h.removeStack)
 
 }
 
@@ -50,22 +47,6 @@ func (h *handler) createImage(c *gin.Context) {
 			"error": err.Error(),
 		})
 		return
-	}
-
-	info, err := h.minio.FPutObject(c, "datachain", img.Filename, "static/"+img.Filename, minio.PutObjectOptions{ContentType: "image/png"})
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	log.Printf("Successfully uploaded %s of size %d\n", img.Filename, info.Size)
-
-	err = os.Remove("static/" + img.Filename)
-	if err != nil {
-		log.Println(err)
 	}
 
 	err = h.storage.CreateStackImage(c, img.Filename)
@@ -107,5 +88,10 @@ func (h *handler) removeStack(c *gin.Context) {
 			"error": "server error",
 		})
 		return
+	}
+
+	err = os.Remove("static/" + id)
+	if err != nil {
+		log.Println(err)
 	}
 }
