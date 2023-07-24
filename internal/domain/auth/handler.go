@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
+	"github.com/wibedev-team/datachain-back/pkg/jwt"
 )
 
 type handler struct {
@@ -63,7 +64,28 @@ func (h *handler) login(c *gin.Context) {
 		return
 	}
 
+	accessToken, err := jwt.GenerateAccessToken(user.Login, user.Role)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "internal server error",
+		})
+		return
+	}
+
+	refreshToken, err := jwt.GenerateRefreshToken(user.Login)
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "internal server error",
+		})
+		return
+	}
+
+	c.SetCookie("refresh_token", refreshToken, 24*60*60*1000, "/", "localhost", false, true)
+
 	c.JSON(http.StatusOK, gin.H{
 		"login": user.Login,
+		"token": accessToken,
 	})
 }
