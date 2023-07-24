@@ -43,8 +43,8 @@ services:
       context: .
     environment:
       NODE_ENV: "production"
-      REACT_APP_BACKEND: "http://server:8000"
-      REACT_APP_MINIO: "http://server:8000/static/"
+      REACT_APP_BACKEND: "http://localhost:8000"
+      REACT_APP_MINIO: "http://localhost:8000/static/"
     depends_on:
       - server
     networks:

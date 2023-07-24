@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
-	"github.com/wibedev-team/datachain-back/pkg/jwt"
 )
 
 type handler struct {
@@ -29,8 +28,6 @@ func NewHandler(r *gin.RouterGroup, s Storage) *handler {
 
 func (h *handler) Register() {
 	h.router.Handle(http.MethodPost, "/login", h.login)
-	h.router.Handle(http.MethodGet, "/logout", h.logout)
-	h.router.Handle(http.MethodGet, "/refresh", h.refresh)
 }
 
 func (h *handler) login(c *gin.Context) {
@@ -66,101 +63,7 @@ func (h *handler) login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := jwt.GenerateAccessToken(user.Login, user.Role)
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error",
-		})
-		return
-	}
-
-	refreshToken, err := jwt.GenerateRefreshToken(user.Login)
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error",
-		})
-		return
-	}
-
-	c.SetCookie("refresh_token", refreshToken, 24*60*60*1000, "/", "localhost", false, true)
-
 	c.JSON(http.StatusOK, gin.H{
 		"login": user.Login,
-		"token": accessToken,
-	})
-}
-
-func (h *handler) logout(c *gin.Context) {
-	c.SetCookie("refresh_token", "", -1, "/", "localhost", false, false)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "log out",
-	})
-}
-
-func (h *handler) refresh(c *gin.Context) {
-	refreshToken, err := c.Cookie("refresh_token")
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "unauthorized",
-		})
-		return
-	}
-
-	if refreshToken == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "unauthorized",
-		})
-		return
-	}
-
-	log.Println(refreshToken)
-
-	token, err := jwt.ParseRefreshTokenToken(refreshToken)
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "unauthorized",
-		})
-		return
-	}
-
-	log.Println(token)
-	login := token["login"]
-
-	user, err := h.storage.FindUserByLogin(c, login.(string))
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error",
-		})
-		return
-	}
-
-	generateAccessToken, err := jwt.GenerateAccessToken(user.Login, user.Role)
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error",
-		})
-		return
-	}
-
-	generateRefreshToken, err := jwt.GenerateRefreshToken(user.Login)
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "internal server error",
-		})
-		return
-	}
-
-	c.SetCookie("refresh_token", generateRefreshToken, 24*60*60*1000, "/", "localhost", false, true)
-
-	c.JSON(http.StatusOK, gin.H{
-		"login": user.Login,
-		"token": generateAccessToken,
 	})
 }
