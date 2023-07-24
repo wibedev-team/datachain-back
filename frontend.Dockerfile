@@ -1,6 +1,6 @@
 FROM node:16-alpine
 WORKDIR /app
-COPY ./frontend .
+COPY ./adminpanel-ui .
 RUN npm ci
 RUN npm run build
 ENV NODE_ENV "production"

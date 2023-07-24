@@ -1,0 +1,13 @@
+.footer-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-form input {
+    width: 400px;
+    margin-bottom: 15px;
+}
+
+.footer-btn {
+    width: 150px;
+}

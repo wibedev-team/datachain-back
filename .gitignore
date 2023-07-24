@@ -2,3 +2,4 @@ bin
 .idea
 frontend/.idea
 static
+adminpanel-ui/node_modules

@@ -1,0 +1,9 @@
+.team-form {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.team-form input {
+    margin-bottom: 15px;
+}
