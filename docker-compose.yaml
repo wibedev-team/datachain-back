@@ -2,7 +2,9 @@ version: "3.7"
 
 services:
   postgres:
-    image: romanchechyotkin/datachain-postgres:latest
+    build:
+      dockerfile: Dockerfile
+      context: ./pkg/db/postgresql
     container_name: "postgres"
     restart: always
     ports:
@@ -16,7 +18,9 @@ services:
     networks:
       - microservices-network
   server:
-    image: romanchechyotkin/datachain-go:latest
+    build:
+      dockerfile: Dockerfile
+      context: .
     volumes:
       - ./static:/app/static
     container_name: server
@@ -35,6 +39,9 @@ services:
 
   frontend:
     image: romanchechyotkin/datachain-react:latest
+    build:
+      dockerfile: frontend.Dockerfile
+      context: .
     environment:
       NODE_ENV: "production"
       REACT_APP_BACKEND: "http://server:8000"
