@@ -44,7 +44,11 @@ func (h *handler) submitHandler(c *gin.Context) {
 	}
 	err := c.ShouldBind(&dto)
 	if err != nil {
-
+		log.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "decode error",
+		})
+		return
 	}
 
 	log.Println(dto.Title, dto.Description, img.Filename)

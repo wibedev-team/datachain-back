@@ -25,7 +25,6 @@ func main() {
 
 	var cfg *config.Config
 	var pgCfg *postgresql.PgConfig
-	//var minioCfg *minio.MinioCfg
 
 	if os.Getenv("POSTGRES_HOST") == "" {
 		cfg = config.New(args[1])
@@ -56,6 +55,7 @@ func main() {
 	domain.NewAuth(engine, pgClient)
 	domain.NewAboutUs(engine, pgClient)
 	domain.NewStack(engine, pgClient)
+	domain.NewSolution(engine, pgClient)
 	domain.NewTeam(engine, pgClient)
 	domain.NewFooter(engine, pgClient)
 
