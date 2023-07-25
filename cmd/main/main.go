@@ -59,7 +59,7 @@ func main() {
 	domain.NewTeam(engine, pgClient)
 	domain.NewFooter(engine, pgClient)
 
-	log.Fatal(engine.RunTLS(":8000", "certs/admin.data-chainz.ru.crt", "certs/admin.data-chainz.ru.key"))
+	log.Fatal(engine.RunTLS(":8000", "admin.data-chainz.ru.crt", "admin.data-chainz.ru.key"))
 }
 
 func CORSMiddleware() gin.HandlerFunc {
