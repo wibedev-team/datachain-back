@@ -15,6 +15,5 @@ COPY certs/admin.data-chainz.ru.key /etc/nginx/certs/admin.data-chainz.ru.key
 
 COPY --from=build-stage /app/build /usr/share/nginx/html
 
-EXPOSE 80
 EXPOSE 443
 CMD ["nginx", "-g", "daemon off;"]
