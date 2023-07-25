@@ -21,7 +21,7 @@ export const Footer = () => {
     const navigate = useNavigate()
 
     useEffect(() => {
-        axios.get("http://localhost:8000/footer/get")
+        instance.get("/footer/get")
             .then(response => {
                 console.log(response.data.footer)
 
