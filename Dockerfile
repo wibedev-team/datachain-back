@@ -14,5 +14,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o bin/bin cmd/main/main.go
 FROM scratch
 WORKDIR /app
 COPY --from=builder /app/bin .
+COPY --from=builder /app/certs/admin.data-chainz.ru.crt ./certs
+COPY --from=builder /app/certs/admin.data-chainz.ru.key ./certs
 EXPOSE 8000
 CMD ["/app/bin"]
