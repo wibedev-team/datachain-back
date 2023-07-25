@@ -90,7 +90,6 @@ export const Footer = () => {
                             <div>Address: {fromServerAddress}</div>
                             <button className={"footer-btn"} onClick={() => setEdit(true)}>изменить</button>
                         </>
-
                     }
                 </div>
             :
