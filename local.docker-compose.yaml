@@ -1,0 +1,63 @@
+version: "3.7"
+
+services:
+  postgres:
+    build:
+      dockerfile: Dockerfile
+      context: ./pkg/db/postgresql
+    container_name: "postgres"
+    restart: always
+    ports:
+      - "5432"
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "5432"
+      POSTGRES_DB: "datachain"
+    volumes:
+      - data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  server:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: server
+    volumes:
+      - ./static:/app/static
+    environment:
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "datachain"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "5432"
+    depends_on:
+      - postgres
+    networks:
+      - microservices-network
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      dockerfile: frontend.Dockerfile
+      context: .
+    environment:
+      NODE_ENV: "local"
+      REACT_APP_BACKEND: "https://localhost:8000"
+      REACT_APP_MINIO: "https://localhost:8000/static/"
+    depends_on:
+      - server
+    networks:
+      - microservices-network
+    ports:
+      - "8080:443"
+
+volumes:
+  data:
+  static:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge
