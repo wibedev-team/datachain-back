@@ -43,7 +43,9 @@ export const Footer = () => {
             "email": email,
             "telephone": telephone,
             "address": address,
-        }).then(response => {
+        }, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
             console.log(response.data)
             navigate("/admin")
         }).catch((error) => {
@@ -56,7 +58,9 @@ export const Footer = () => {
             "email": updateEmail,
             "telephone": updateTelephone,
             "address": updateAddress,
-        }).then(response => {
+        }, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
             console.log(response.data)
             setEdit(false)
             navigate("/admin")

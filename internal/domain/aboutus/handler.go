@@ -2,9 +2,11 @@ package aboutus
 
 import (
 	"context"
+	"github.com/wibedev-team/datachain-back/pkg/jwt"
 	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -38,11 +40,26 @@ func (h *handler) submitHandler(c *gin.Context) {
 	img, _ := c.FormFile("image")
 	img.Filename = uuid.New().String() + ".png"
 
+	authHeader := c.GetHeader("Authorization")
+	headers := strings.Split(authHeader, " ")
+	log.Println(headers)
+	token, err := jwt.ParseAccessToken(headers[1])
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	role := token["role"]
+	if role != "ADMIN" {
+		c.JSON(http.StatusUnauthorized, "wrong role")
+		return
+	}
+
 	var dto struct {
 		Title       string `form:"title"`
 		Description string `form:"description"`
 	}
-	err := c.ShouldBind(&dto)
+	err = c.ShouldBind(&dto)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -107,3 +124,8 @@ func (h *handler) getAboutSection(c *gin.Context) {
 		"img":         about.Img,
 	})
 }
+
+//
+//func enableCors(w *http.ResponseWriter) {
+//	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+//}

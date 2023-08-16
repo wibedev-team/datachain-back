@@ -43,7 +43,9 @@ export const About = () => {
         formData.append('title', title)
         formData.append('description', descr)
 
-        instance.post("/about/create", formData).then(response => {
+        instance.post("/about/create", formData, {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }).then(response => {
             console.log(response.data)
             navigate("/admin")
         }).catch((error) => {
@@ -57,7 +59,9 @@ export const About = () => {
         formData.append('title', updateTitle)
         formData.append('description', updateDescr)
 
-        instance.post("/about/create", formData).then(response => {
+        instance.post("/about/create", formData, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
             console.log(response.data)
             setEdit(false)
             navigate("/admin")

@@ -2,8 +2,10 @@ package footer
 
 import (
 	"context"
+	"github.com/wibedev-team/datachain-back/pkg/jwt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -35,7 +37,22 @@ func (h *handler) Register() {
 func (h *handler) createFooter(c *gin.Context) {
 	var dto models.Footer
 
-	err := c.ShouldBindJSON(&dto)
+	authHeader := c.GetHeader("Authorization")
+	headers := strings.Split(authHeader, " ")
+	log.Println(headers)
+	token, err := jwt.ParseAccessToken(headers[1])
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	role := token["role"]
+	if role != "ADMIN" {
+		c.JSON(http.StatusUnauthorized, "wrong role")
+		return
+	}
+
+	err = c.ShouldBindJSON(&dto)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{

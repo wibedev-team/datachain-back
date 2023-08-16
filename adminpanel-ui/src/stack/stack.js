@@ -29,7 +29,9 @@ export const Stack = () => {
     const createImg = () => {
         const formData = new FormData()
         formData.append('image', file)
-        instance.post("/stack/create", formData).then(response => {
+        instance.post("/stack/create", formData, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
             console.log(response.data)
             navigate("/admin")
         }).catch((error) => {
@@ -38,7 +40,9 @@ export const Stack = () => {
     }
 
     const remove = (id) => {
-        instance.delete(`/stack/${id}`)
+        instance.delete(`/stack/${id}`, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }})
             .then(response => {
                 console.log(response.data)
                 navigate("/admin")

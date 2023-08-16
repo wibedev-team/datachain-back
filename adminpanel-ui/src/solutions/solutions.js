@@ -37,7 +37,9 @@ export const Solutions = () => {
         formData.append('features', features)
         formData.append('link', link)
 
-        instance.post("/solution/create", formData).then(response => {
+        instance.post("/solution/create", formData, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
             console.log(response.data)
             navigate("/admin")
         }).catch((error) => {
@@ -46,7 +48,9 @@ export const Solutions = () => {
     }
 
     const deleteSolution = (id) => {
-        instance.delete(`/solution/${id}`).then(response => {
+        instance.delete(`/solution/${id}`, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
             console.log(response.data)
             navigate("/admin")
         }).catch((error) => {

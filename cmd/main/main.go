@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"github.com/wibedev-team/datachain-back/internal/config"
@@ -49,7 +48,7 @@ func main() {
 	pgClient := postgresql.New(ctx, pgCfg)
 
 	engine := gin.Default()
-	engine.Use(cors.Default())
+	engine.Use(CORSMiddleware())
 	engine.Static("/static", "./static")
 
 	domain.NewAuth(engine, pgClient)
@@ -60,4 +59,20 @@ func main() {
 	domain.NewFooter(engine, pgClient)
 
 	log.Fatal(engine.RunTLS(":8000", "admin.data-chainz.ru.crt", "admin.data-chainz.ru.key"))
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, DELETE, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
