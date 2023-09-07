@@ -2,14 +2,12 @@ package stack
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/wibedev-team/datachain-back/pkg/jwt"
 	"log"
 	"net/http"
 	"os"
-	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
 )
@@ -40,21 +38,21 @@ func (h *handler) Register() {
 }
 
 func (h *handler) createImage(c *gin.Context) {
-	img, _ := c.FormFile("image")
+	img, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
 	img.Filename = uuid.New().String() + ".png"
 
-	authHeader := c.GetHeader("Authorization")
-	headers := strings.Split(authHeader, " ")
-	log.Println(headers)
-	token, err := jwt.ParseAccessToken(headers[1])
+	adminRole, err := jwt.CheckAdminRole(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	role := token["role"]
-	if role != "ADMIN" {
-		c.JSON(http.StatusUnauthorized, "wrong role")
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
 		return
 	}
 
@@ -98,18 +96,14 @@ func (h *handler) getAllImages(c *gin.Context) {
 func (h *handler) removeStack(c *gin.Context) {
 	id := c.Param("id")
 
-	authHeader := c.GetHeader("Authorization")
-	headers := strings.Split(authHeader, " ")
-	log.Println(headers)
-	token, err := jwt.ParseAccessToken(headers[1])
+	adminRole, err := jwt.CheckAdminRole(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	role := token["role"]
-	if role != "ADMIN" {
-		c.JSON(http.StatusUnauthorized, "wrong role")
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
 		return
 	}
 

@@ -1,11 +1,17 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var ErrorNotAdmin = errors.New("not admin")
 
 func GenerateAccessToken(login, role string) (token string, err error) {
 	t := jwt.New(jwt.SigningMethodHS256)
@@ -60,4 +66,21 @@ func ParseRefreshTokenToken(token string) (jwt.MapClaims, error) {
 	}
 
 	return claims.Claims.(jwt.MapClaims), err
+}
+
+func CheckAdminRole(ctx *gin.Context) (bool, error) {
+	authHeader := ctx.GetHeader("Authorization")
+	headers := strings.Split(authHeader, " ")
+	log.Println(headers)
+	token, err := ParseAccessToken(headers[1])
+	if err != nil {
+		return false, err
+	}
+
+	role := token["role"]
+	if role != "ADMIN" {
+		return false, ErrorNotAdmin
+	}
+
+	return true, nil
 }

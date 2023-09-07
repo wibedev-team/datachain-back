@@ -38,20 +38,20 @@ func (h *handler) Register() {
 }
 
 func (h *handler) createSolution(c *gin.Context) {
-	img, _ := c.FormFile("file")
-
-	authHeader := c.GetHeader("Authorization")
-	headers := strings.Split(authHeader, " ")
-	log.Println(headers)
-	token, err := jwt.ParseAccessToken(headers[1])
+	img, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	role := token["role"]
-	if role != "ADMIN" {
-		c.JSON(http.StatusUnauthorized, "wrong role")
+	adminRole, err := jwt.CheckAdminRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
 		return
 	}
 
@@ -119,18 +119,14 @@ func (h *handler) getAllSolutions(c *gin.Context) {
 func (h *handler) removeSolution(c *gin.Context) {
 	title := c.Param("id")
 
-	authHeader := c.GetHeader("Authorization")
-	headers := strings.Split(authHeader, " ")
-	log.Println(headers)
-	token, err := jwt.ParseAccessToken(headers[1])
+	adminRole, err := jwt.CheckAdminRole(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 
-	role := token["role"]
-	if role != "ADMIN" {
-		c.JSON(http.StatusUnauthorized, "wrong role")
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
 		return
 	}
 
