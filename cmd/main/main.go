@@ -14,21 +14,21 @@ import (
 func main() {
 	ctx := context.Background()
 
-	pgCfg := config.Init()
-	pgClient := postgresql.New(ctx, pgCfg)
+	pgCfg, err := config.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pgClient, err := postgresql.New(ctx, pgCfg)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	engine := gin.Default()
 	engine.Use(CORSMiddleware())
 	engine.Static("/static", "./static")
 
 	RegisterRoutes(engine, pgClient)
-
-	//domain.NewAuth(engine, pgClient)
-	//domain.NewAboutUs(engine, pgClient)
-	//domain.NewStack(engine, pgClient)
-	//domain.NewSolution(engine, pgClient)
-	//domain.NewTeam(engine, pgClient)
-	//domain.NewFooter(engine, pgClient)
 
 	log.Fatal(engine.RunTLS(":8000", "admin.data-chainz.ru.crt", "admin.data-chainz.ru.key"))
 }

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"github.com/wibedev-team/datachain-back/pkg/db/postgresql"
 	"log"
 	"os"
@@ -32,11 +33,11 @@ func New(configPath string) *Config {
 	return &cfg
 }
 
-func Init() *postgresql.PgConfig {
+func Init() (*postgresql.PgConfig, error) {
 	args := os.Args
 	if len(args) != 2 {
 		if os.Getenv("POSTGRES_DB") == "" {
-			log.Fatalf("provide path to congig file")
+			return nil, errors.New("provide path to config file")
 		}
 	}
 
@@ -45,23 +46,30 @@ func Init() *postgresql.PgConfig {
 
 	if os.Getenv("POSTGRES_HOST") == "" {
 		cfg = New(args[1])
-
-		pgCfg = postgresql.NewConfig(
-			cfg.Postgresql.Username,
-			cfg.Postgresql.Password,
-			cfg.Postgresql.Host,
-			cfg.Postgresql.Port,
-			cfg.Postgresql.Database,
-		)
+		pgCfg = initPgCfgUsingConfiguration(cfg)
 	} else {
-		pgCfg = postgresql.NewConfig(
-			os.Getenv("POSTGRES_USER"),
-			os.Getenv("POSTGRES_PASSWORD"),
-			os.Getenv("POSTGRES_HOST"),
-			os.Getenv("POSTGRES_PORT"),
-			os.Getenv("POSTGRES_DB"),
-		)
+		pgCfg = initPgCfgUsingEnv()
 	}
 
-	return pgCfg
+	return pgCfg, nil
+}
+
+func initPgCfgUsingEnv() *postgresql.PgConfig {
+	return postgresql.NewConfig(
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
+		os.Getenv("POSTGRES_PORT"),
+		os.Getenv("POSTGRES_DB"),
+	)
+}
+
+func initPgCfgUsingConfiguration(cfg *Config) *postgresql.PgConfig {
+	return postgresql.NewConfig(
+		cfg.Postgresql.Username,
+		cfg.Postgresql.Password,
+		cfg.Postgresql.Host,
+		cfg.Postgresql.Port,
+		cfg.Postgresql.Database,
+	)
 }

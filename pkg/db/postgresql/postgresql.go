@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -26,20 +27,20 @@ func NewConfig(username, password, host, port, database string) *PgConfig {
 	}
 }
 
-func New(ctx context.Context, cfg *PgConfig) *pgxpool.Pool {
+func New(ctx context.Context, cfg *PgConfig) (*pgxpool.Pool, error) {
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
 	log.Println(connString)
 
 	log.Println("postgresql client init")
 	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
-		log.Fatalf("failed to connect to postgresql; err: %v", err)
+		return nil, errors.New(fmt.Sprintf("failed to connect to postgresql; err: %v", err))
 	}
 
 	err = pool.Ping(ctx)
 	if err != nil {
-		log.Fatalf("failed to connect to postgresql; err: %v", err)
+		return nil, errors.New(fmt.Sprintf("failed to connect to postgresql; err: %v", err))
 	}
 
-	return pool
+	return pool, nil
 }
