@@ -2,12 +2,12 @@ package team
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/wibedev-team/datachain-back/pkg/jwt"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
 )
@@ -37,15 +37,30 @@ func (h *handler) Register() {
 }
 
 func (h *handler) createTeammate(c *gin.Context) {
-	img, _ := c.FormFile("image")
+	img, err := c.FormFile("image")
 	img.Filename = uuid.New().String() + ".png"
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	adminRole, err := jwt.CheckAdminRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
+		return
+	}
 
 	var dto struct {
 		Name     string `form:"name"`
 		Position string `form:"position"`
 		Link     string `form:"link"`
 	}
-	err := c.ShouldBind(&dto)
+	err = c.ShouldBind(&dto)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -95,7 +110,18 @@ func (h *handler) getTeammates(c *gin.Context) {
 func (h *handler) removeTeammate(c *gin.Context) {
 	id := c.Param("id")
 
-	err := h.storage.RemoveTeammate(c, id)
+	adminRole, err := jwt.CheckAdminRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
+		return
+	}
+
+	err = h.storage.RemoveTeammate(c, id)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{

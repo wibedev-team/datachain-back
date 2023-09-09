@@ -3,6 +3,7 @@ package solutions
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/wibedev-team/datachain-back/pkg/jwt"
 	"log"
 	"net/http"
 	"strings"
@@ -37,10 +38,26 @@ func (h *handler) Register() {
 }
 
 func (h *handler) createSolution(c *gin.Context) {
-	img, _ := c.FormFile("file")
+	img, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	adminRole, err := jwt.CheckAdminRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
+		return
+	}
+
 	log.Println(img.Filename)
 	img.Filename = uuid.New().String() + ".png"
-	err := c.SaveUploadedFile(img, "static/"+img.Filename)
+	err = c.SaveUploadedFile(img, "static/"+img.Filename)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -101,7 +118,19 @@ func (h *handler) getAllSolutions(c *gin.Context) {
 
 func (h *handler) removeSolution(c *gin.Context) {
 	title := c.Param("id")
-	err := h.storage.RemoveSolution(c, title)
+
+	adminRole, err := jwt.CheckAdminRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
+		return
+	}
+
+	err = h.storage.RemoveSolution(c, title)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

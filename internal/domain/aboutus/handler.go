@@ -2,12 +2,12 @@ package aboutus
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/wibedev-team/datachain-back/pkg/jwt"
 	"html/template"
 	"log"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 
 	"github.com/wibedev-team/datachain-back/internal/models"
 )
@@ -35,14 +35,30 @@ func (h *handler) Register() {
 }
 
 func (h *handler) submitHandler(c *gin.Context) {
-	img, _ := c.FormFile("image")
+	img, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
 	img.Filename = uuid.New().String() + ".png"
+
+	adminRole, err := jwt.CheckAdminRole(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if !adminRole {
+		c.JSON(http.StatusUnauthorized, jwt.ErrorNotAdmin.Error())
+		return
+	}
 
 	var dto struct {
 		Title       string `form:"title"`
 		Description string `form:"description"`
 	}
-	err := c.ShouldBind(&dto)
+
+	err = c.ShouldBind(&dto)
 	if err != nil {
 		log.Println(err)
 		c.JSON(http.StatusBadRequest, gin.H{

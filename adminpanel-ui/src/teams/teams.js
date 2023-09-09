@@ -37,23 +37,23 @@ export const Teams = () => {
         formData.append('name', name)
         formData.append('position', position)
         formData.append('link', link)
-        instance.post("/team/create", formData)
-            .then(response => {
-
-                console.log(response.data)
-                navigate("/admin")
-
-            }).catch((error) => {
+        instance.post("/team/create", formData, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
+            console.log(response.data)
+            navigate("/admin")
+        }).catch((error) => {
             console.log(error);
         })
     }
 
     const remove = (id) => {
-        instance.delete(`/team/${id}`)
-            .then(response => {
-                console.log(response.data)
-                navigate("/admin")
-            }).catch((error) => {
+        instance.delete(`/team/${id}`, {
+            headers: {Authorization: `Bearer ${JSON.parse(localStorage.getItem("token"))}`
+        }}).then(response => {
+            console.log(response.data)
+            navigate("/admin")
+        }).catch((error) => {
             console.log(error);
         })
     }
